@@ -34,7 +34,7 @@ class AdafruitIO:
     def message(self, client, feed_id, payload):
         print("Nhan du lieu: " + payload + " , feed id: " + feed_id)
         if feed_id == "light":
-            self.pushData('acklight', "received " + payload)
+            self.pushData('acklight', "received" + payload)
             if payload == "0": serial.writeData('L0')
             else: serial.writeData('L1')
         if feed_id == "pump":

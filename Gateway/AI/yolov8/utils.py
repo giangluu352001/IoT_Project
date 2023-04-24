@@ -59,7 +59,7 @@ def draw_detections(image, boxes, scores, class_ids, mask_alpha=0.3):
     img_height, img_width = image.shape[:2]
     size = min([img_height, img_width]) * 0.001
     text_thickness = int(min([img_height, img_width]) * 0.001)
-
+    label = 'no people'
     # Draw bounding boxes and labels of detections
     for box, score, class_id in zip(boxes, scores, class_ids):
         color = colors[class_id]

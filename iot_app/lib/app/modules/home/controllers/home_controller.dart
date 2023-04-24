@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iot_app/app/models/sensor_api.dart';
 import '../views/widgets/chart.dart';
@@ -6,8 +7,12 @@ import '../views/widgets/chart.dart';
 class HomeController extends GetxController {
   String userName = 'Truong Giang';
   List<bool> isToggled = [false, false];
-  List<bool> oneHop = [false, false];
-  final List<TemperatureData> chartData = []; 
+  List<bool> isCompleted = [false, false];
+  List<bool> isReceived = [false, false];
+  List<bool> isAcked = [false, false];
+  List<bool> isTimeOut = [false, false];
+
+  final List<TemperatureData> chartData = [];
 
   final tempStream = StreamController<String>();
   final humidStream = StreamController<String>();
@@ -38,26 +43,27 @@ class HomeController extends GetxController {
         }
         update([3, true]);
       }
-    }
-    else {
+    } else {
       int index = key == 'acklight' ? 0 : 1;
-      if (payload.contains("received") && oneHop[index]) {
-        isToggled[index] = !isToggled[index];
-        update([2, true]);
+      if (payload.contains("received")) {
+        isAcked[index] = true;
+        changeStateButton(index);
       }
-      oneHop[index] = false;
     }
   }
-  
+
   toggle(int index, String? data) {
     String sentData = isToggled[index] ? "0" : "1";
     if (sentData == data) {
-      oneHop[index] = true;
+      isReceived[index] = true;
     }
-    else {
-      // we can resend messages here again
-      oneHop[index] = false;
-    }
+  }
+
+  Future<void> _myFuture(int index) async {
+    isTimeOut[index] = false;
+    await Future.delayed(const Duration(seconds: 3), () {
+      isTimeOut[index] = true;
+    });
   }
 
   onSwitched(int index) {
@@ -69,6 +75,10 @@ class HomeController extends GetxController {
       var value = isToggled[index] ? "0" : "1";
       TempHumidAPI.updateData("pump", value);
     }
+    isReceived[index] = false;
+    isAcked[index] = false;
+    isCompleted[index] = false;
+    _myFuture(index);
   }
 
   registerSensorData() async {
@@ -76,14 +86,39 @@ class HomeController extends GetxController {
       await TempHumidAPI.registerData(key);
     }
     TempHumidAPI.registerStreaming(this);
-  } 
+  }
+
+  changeStateButton(int idx) {
+    if (isReceived[idx] && isAcked[idx]) {
+      isToggled[idx] = !isToggled[idx];
+      isCompleted[idx] = true;
+      update([2, true]);
+    }
+  }
+
+  timeOutMqtt() {
+    for (int idx = 0; idx < isToggled.length; idx++) {
+      if (isTimeOut[idx] && !isCompleted[idx]) {
+        Get.snackbar(
+          "An error has occured",
+          "Please try again!",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 1),
+        );
+        isTimeOut[idx] = false;
+      }
+    }
+  }
 
   @override
   void onInit() {
     registerSensorData();
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      timeOutMqtt();
+    });
     super.onInit();
   }
-
 
   @override
   void onClose() {

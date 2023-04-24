@@ -42,8 +42,9 @@ class Serial:
         data = data.replace("!", "")
         data = data.replace("#", "")
         splitData = data.split(":")
+        print(splitData)
         _, key, value = splitData
-        if key == "T": client.pushData(key, value)
-        elif key == "H": client.pushData(key, value)
+        if key == "T": client.pushData("temperature", value)
+        elif key == "H": client.pushData("humidity", value)
 
 serial = Serial('CP210x', 115200)

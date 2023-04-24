@@ -1,39 +1,22 @@
 import time
-import random
-#from AI.detector import image_detector
+from AI.detector import image_detector
+import cv2
 from server import AdafruitIO
 from uart import serial
-counter = 10
-sensor_type = 0
-counter_ai = 5
-result = ""
 
+result = ""
 configs = []
 client = AdafruitIO()
 
 while True:
-    counter = counter - 1
-    if counter <= 0:
-      counter = 10
-      if sensor_type == 0:
-        temp = random.randint(10, 60)
-        client.pushData("temperature", temp)
-        sensor_type = 1
-      elif sensor_type == 1:
-        humi = random.randint(20, 70)
-        client.pushData("humidity", humi)
-        sensor_type = 0
-    
-    counter_ai = counter_ai - 1
-    if counter_ai <= 0: 
-      counter_ai = 5
-      '''ai_result, image = image_detector()
-      if ai_result != result:
+    ai_result, image = image_detector()
+    if ai_result != result and ai_result in ["without_mask", "mask_weared_incorrect"]:
         result = ai_result
         print('AI Output: ', result)
         client.pushData("ai", ai_result)
-        client.pushData('image', image)'''
-       
+        client.pushData('image', image)
+    
     serial.readSerial(client)
-    time.sleep(3)
-
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+    
