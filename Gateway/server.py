@@ -2,8 +2,8 @@ from Adafruit_IO import MQTTClient
 import sys
 from uart import serial
 
-AIO_USERNAME = "TruongGiang352001"
-AIO_KEY = "aio_qrLH60H0u5jy8lIAYtKlXxkyZvx7"
+AIO_USERNAME = ""
+AIO_KEY = ""
 AIO_FEED_IDS = ['light', 'pump']
 
 class AdafruitIO:
